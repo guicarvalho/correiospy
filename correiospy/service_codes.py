@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from errors import InvalidServiceCodeError
+
 
 class ServiceCodes(object):
     SEDEX_VAREJO_CODE = '40010'
@@ -18,7 +20,10 @@ class ServiceCodes(object):
         ]
         return codes
 
-    def is_value_service_code(self, code_value):
-        if str(code_value) not in self.get_service_code_list():
-            return False
-        return True
+    def is_value_service_code(self, code_value_list):
+        valid_code_value_list = [code for code in code_value_list if code in self.get_service_code_list()]
+
+        if len(valid_code_value_list) != len(code_value_list):
+            raise InvalidServiceCodeError('Invalid service code, enter a valid service code.')
+
+        return ','.join(valid_code_value_list)

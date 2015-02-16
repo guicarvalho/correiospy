@@ -12,5 +12,5 @@ class VerifyZipCode(object):
         try:
             for zip_code in zip_code_list:
                 match.match(zip_code).group(0)
-        except Exception as error:
-            InvalidZipCodeError("{} ins't valid zip code. {}.".format(error))
+        except Exception:
+            raise InvalidZipCodeError("{} ins't valid zip code.".format(zip_code))

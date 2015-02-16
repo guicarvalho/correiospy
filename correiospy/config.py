@@ -3,3 +3,5 @@
 URL_WS_CORREIOS = 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx'
 
 NOT_SERVICE_VALUE = 'N'
+
+URI_NAMESPACE = 'http://tempuri.org/'

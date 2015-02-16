@@ -3,8 +3,9 @@
 import urllib
 import urllib2
 import json
+import xml.etree.ElementTree as ET
 
-from config import NOT_SERVICE_VALUE, URL_WS_CORREIOS
+from config import NOT_SERVICE_VALUE, URL_WS_CORREIOS, URI_NAMESPACE
 from errors import InvalidServiceCodeError, InvalidZipCodeError, InvalidOrderFormatError
 from format_order_codes import OrderFormats
 from service_codes import ServiceCodes
@@ -26,7 +27,7 @@ class CalcPriceDeadline(object):
                  order_width,
                  order_diameter,
                  own_hand=NOT_SERVICE_VALUE,
-                 declared_value=0,
+                 declared_value='0',
                  receiving_notice=NOT_SERVICE_VALUE,
                  service_code=None
                  ):
@@ -40,7 +41,7 @@ class CalcPriceDeadline(object):
         self.zip_code_receiver = zip_code_receiver
         self.zip_code_sender = zip_code_sender
 
-        self.order_weight = order_weight
+        self.order_weight = str(order_weight)
 
         order_formats = OrderFormats(order_format)
         try:
@@ -50,59 +51,38 @@ class CalcPriceDeadline(object):
 
         if not order_length:
             raise ValueError("The order length can't be null.")
-        self.order_length = order_length
+        self.order_length = str(order_length)
 
         if not order_height:
             raise ValueError("The order height can't be null.")
-        self.order_height = order_height
+        self.order_height = str(order_height)
 
         if not order_width:
             raise ValueError("The order width can't be null.")
-        self.order_width = order_width
+        self.order_width = str(order_width)
 
         if not order_diameter:
             raise ValueError("The order diameter can't be null.")
-        self.order_diameter = order_diameter
+        self.order_diameter = str(order_diameter)
 
         self.own_hand = own_hand
 
-        self.declared_value = declared_value
+        self.declared_value = str(declared_value)
 
         self.receiving_notice = receiving_notice
 
         service_codes = ServiceCodes()
-        is_valid_service_code = service_codes.is_value_service_code(service_code)
+        try:
+            self.service_code = service_codes.is_value_service_code(service_code)
+        except InvalidServiceCodeError as error:
+            raise error
 
-        if not is_valid_service_code:
-            raise InvalidServiceCodeError('Invalid service code, enter a valid service code.')
-        self.service_code = service_code
-
-    def calculate(self, format='json'):
-        if format == 'plain/text':
-            return self._get_as_plain_text()
-        elif format == 'json':
-            return self._get_as_json()
-
-    def _get_as_plain_text(self):
-        content = self._return_values()
-
-        plain_text = u'{0:<25} => {1}\n'.format(u'Código', content['code'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Valor', content['value'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Prazo de entrega', content['deadline'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Valor mão propria', content['own_hand'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Valor aviso recebimento', content['receiving_notice'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Valor declarado', content['declared_value'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Entrega domiciliar', content['home_delivery'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Entrega sábado', content['saturday_delivery'])
-        plain_text += u'{0:<25} => {1}\n'.format(u'Valor sem adicionais', content['additional_valueless'])
-
-        return plain_text
+    def calculate(self):
+        return self._get_as_json()
 
     def _get_as_json(self):
         content = self._return_values()
-        content = json.dumps(content)
-
-        return content
+        return json.dumps(content)
 
     def _get(self):
         values = {
@@ -126,45 +106,27 @@ class CalcPriceDeadline(object):
         req = urllib2.Request('{}/{}'.format(URL_WS_CORREIOS, 'CalcPrecoPrazo'), data)
         response = urllib2.urlopen(req)
 
-        return response.read()
+        return ET.fromstring(response.read())
 
     def _return_values(self):
         content = self._get()
 
-        ini, end = content.find('<Codigo>') + len('<Codigo>'), content.find('</Codigo>')
-        code = content[ini:end]
+        elem_services = content.getchildren()[0]
+        cservice_list = elem_services.findall(ET.QName(URI_NAMESPACE, 'cServico').text)
 
-        ini, end = content.find('<Valor>') + len('<Valor>'), content.find('</Valor>')
-        value = content[ini:end]
+        dict_return = {}
 
-        ini, end = content.find('<PrazoEntrega>') + len('<PrazoEntrega>'), content.find('</PrazoEntrega>')
-        deadline = content[ini:end]
-
-        ini, end = content.find('<ValorMaoPropria>') + len('<ValorMaoPropria>'), content.find('</ValorMaoPropria>')
-        own_hand = content[ini:end]
-
-        ini, end = content.find('<ValorAvisoRecebimento>') + len('<ValorAvisoRecebimento>'), content.find('</ValorAvisoRecebimento>')
-        receiving_notice = content[ini:end]
-
-        ini, end = content.find('<ValorValorDeclarado>') + len('<ValorValorDeclarado>'), content.find('</ValorValorDeclarado>')
-        declared_value = content[ini:end]
-
-        ini, end = content.find('<EntregaDomiciliar>') + len('<EntregaDomiciliar>'), content.find('</EntregaDomiciliar>')
-        home_delivery = content[ini:end]
-
-        ini, end = content.find('<EntregaSabado>') + len('<EntregaSabado>'), content.find('</EntregaSabado>')
-        saturday_delivery = content[ini:end]
-
-        ini, end = content.find('<ValorSemAdicionais>') + len('<ValorSemAdicionais>'), content.find('</ValorSemAdicionais>')
-        additional_valueless = content[ini:end]
-
-        return {'code': code,
-                'value': value,
-                'deadline': deadline,
-                'own_hand': own_hand,
-                'receiving_notice': receiving_notice,
-                'declared_value': declared_value,
-                'home_delivery': home_delivery,
-                'saturday_delivery': saturday_delivery,
-                'additional_valueless': additional_valueless
-                }
+        for c_service in cservice_list:
+            code = c_service.find(ET.QName(URI_NAMESPACE, 'Codigo').text).text
+            dict_return[code] = {
+                'code': code,
+                'value': c_service.find(ET.QName(URI_NAMESPACE, 'Valor').text).text,
+                'deadline': c_service.find(ET.QName(URI_NAMESPACE, 'PrazoEntrega').text).text,
+                'own_hand': c_service.find(ET.QName(URI_NAMESPACE, 'ValorMaoPropria').text).text,
+                'receiving_notice': c_service.find(ET.QName(URI_NAMESPACE, 'ValorAvisoRecebimento').text).text,
+                'declared_value': c_service.find(ET.QName(URI_NAMESPACE, 'ValorValorDeclarado').text).text,
+                'home_delivery': c_service.find(ET.QName(URI_NAMESPACE, 'EntregaDomiciliar').text).text,
+                'saturday_delivery': c_service.find(ET.QName(URI_NAMESPACE, 'EntregaSabado').text).text,
+                'additional_valueless': c_service.find(ET.QName(URI_NAMESPACE, 'ValorSemAdicionais').text).text
+            }
+        return dict_return
