@@ -90,7 +90,9 @@ The response is a JSON object, and must look like this:
 // one service code
 
 {"40010": {"own_hand": "0,00", "receiving_notice": "0,00", "code": "40010", "deadline": "1", "declared_value": "0,00", "saturday_delivery": "S", "additional_valueless": "14,00", "home_delivery": "S", "value": "14,00"}}
+```
 
+```json
 // many service code
 
 {"40045": {"own_hand": "0,00", "receiving_notice": "0,00", "code": "40045", "deadline": "0", "declared_value": "0,00", "saturday_delivery": null, "additional_valueless": "0,00", "home_delivery": null, "value": "0,00"}, "40215": {"own_hand": "0,00", "receiving_notice": "0,00", "code": "40215", "deadline": "1", "declared_value": "0,00", "saturday_delivery": "S", "additional_valueless": "22,60", "home_delivery": "S", "value": "22,60"}, "40010": {"own_hand": "0,00", "receiving_notice": "0,00", "code": "40010", "deadline": "1", "declared_value": "0,00", "saturday_delivery": "S", "additional_valueless": "14,00", "home_delivery": "S", "value": "14,00"}, "40290": {"own_hand": "0,00", "receiving_notice": "0,00", "code": "40290", "deadline": "0", "declared_value": "0,00", "saturday_delivery": null, "additional_valueless": "0", "home_delivery": null, "value": "0"}, "41106": {"own_hand": "0,00", "receiving_notice": "0,00", "code": "41106", "deadline": "3", "declared_value": "0,00", "saturday_delivery": "N", "additional_valueless": "13,70", "home_delivery": "S", "value": "13,70"}}
