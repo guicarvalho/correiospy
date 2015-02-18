@@ -45,7 +45,7 @@ values = {'zip_code_sender': '14808400',
           'order_width': 27,
           'order_diameter': 27,
           'declared_value': 0,
-          'service_code': ServiceCodes.SEDEX_VAREJO_CODE
+          'service_code': [ServiceCodes.SEDEX_VAREJO_CODE]
           }
 
 calc = CalcPriceDeadline(**values)
