@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from errors import InvalidServiceCodeError
+from .errors import InvalidServiceCodeError
 
 
 class ServiceCodes(object):

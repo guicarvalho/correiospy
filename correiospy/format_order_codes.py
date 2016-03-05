@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from errors import InvalidOrderFormatError
+from .errors import InvalidOrderFormatError
 
 
 class OrderFormats(object):
