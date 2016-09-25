@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from errors import InvalidZipCodeError
+from .errors import InvalidZipCodeError
 import re
 
 

@@ -1,15 +1,15 @@
 # coding: utf-8
 
-import urllib
-import urllib2
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 import json
 import xml.etree.ElementTree as ET
 
-from config import NOT_SERVICE_VALUE, URL_WS_CORREIOS, URI_NAMESPACE
-from errors import InvalidServiceCodeError, InvalidZipCodeError, InvalidOrderFormatError
-from format_order_codes import OrderFormats
-from service_codes import ServiceCodes
-from utils import VerifyZipCode
+from .config import NOT_SERVICE_VALUE, URL_WS_CORREIOS, URI_NAMESPACE
+from .errors import InvalidServiceCodeError, InvalidZipCodeError, InvalidOrderFormatError
+from .format_order_codes import OrderFormats
+from .service_codes import ServiceCodes
+from .utils import VerifyZipCode
 
 
 class CalcPriceDeadline(object):
@@ -102,9 +102,9 @@ class CalcPriceDeadline(object):
             'sCdAvisoRecebimento': self.receiving_notice
         }
 
-        data = urllib.urlencode(values)
-        req = urllib2.Request('{}/{}'.format(URL_WS_CORREIOS, 'CalcPrecoPrazo'), data)
-        response = urllib2.urlopen(req)
+        data = urlencode(values)
+        req = Request('{}/{}'.format(URL_WS_CORREIOS, 'CalcPrecoPrazo'), data.encode())
+        response = urlopen(req)
 
         return ET.fromstring(response.read())
 
